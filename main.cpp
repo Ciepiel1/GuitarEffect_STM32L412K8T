@@ -22,10 +22,10 @@
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
-#include "Button.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Button.h"
 #include "CPP_main.h"
 /* USER CODE END Includes */
 
