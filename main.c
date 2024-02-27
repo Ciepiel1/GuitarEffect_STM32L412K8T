@@ -160,13 +160,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim == &htim6)
-	{
-		HAL_GPIO_TogglePin(TEST_GPIO_Port,TEST_Pin);
-	}
-}
+
 /* USER CODE END 4 */
 
 /**

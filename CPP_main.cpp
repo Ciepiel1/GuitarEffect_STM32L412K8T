@@ -10,7 +10,10 @@
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
+#include "Button.h"
 #include "CPP_main.h"
+
+Button button;
 
 int CPP_main()
 {
@@ -76,5 +79,15 @@ int CPP_main()
 				  HAL_Delay(10);
 			  }
 
+	}
+}
+
+/*Timer Interupts*/
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim == &htim6)
+	{
+		HAL_GPIO_TogglePin(TEST_GPIO_Port,TEST_Pin);
 	}
 }
