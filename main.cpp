@@ -22,6 +22,7 @@
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
+#include "Button.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,6 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+Button MainButton;
 
 /* USER CODE END PV */
 
@@ -98,8 +101,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  CPP_main(); //Cpp main() function
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+//  HAL_TIM_Base_Start_IT(MainButton.timer_ptr);
+  //CPP_main(); //Cpp main() function
   while (1)
   {
 
@@ -160,6 +165,58 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == FTSW_IN_Pin && !MainButton.isDebouncing)
+	{
+		if(MainButton.Debounce())								//check for debounce
+		{
+			if(MainButton.CheckState())							//check if button On/Off
+			{
+				//HAL_TIM_Base_Start_IT(MainButton.timer_ptr);	//
+			}
+			else
+			{
+				if(MainButton.GetClickTime()>= 500)
+				{
+					//LongClick
+					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
+					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+				}
+				else
+				{
+					//SingleClick
+					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
+					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+				}
+				HAL_TIM_Base_Stop_IT(MainButton.timer_ptr);
+				MainButton.Click_timer = 0;
+
+			}
+		}
+	}
+}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim == MainButton.timer_ptr)
+	{
+		MainButton.Tick();
+		/*
+		if(MainButton.Click_timer>1000)
+		{
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+		}
+		else if(MainButton.Click_timer == 2000) MainButton.Click_timer = 0;
+		else
+		{
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+		}
+		*/
+	}
+}
+
 
 /* USER CODE END 4 */
 

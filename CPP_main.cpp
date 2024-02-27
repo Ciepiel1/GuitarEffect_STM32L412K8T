@@ -84,6 +84,7 @@ int CPP_main()
 
 /*Timer Interupts*/
 
+/*
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim6)
@@ -91,3 +92,4 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		HAL_GPIO_TogglePin(TEST_GPIO_Port,TEST_Pin);
 	}
 }
+*/
