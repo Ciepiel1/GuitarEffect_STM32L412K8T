@@ -103,6 +103,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
 //  HAL_TIM_Base_Start_IT(MainButton.timer_ptr);
   //CPP_main(); //Cpp main() function
   while (1)
@@ -171,26 +172,37 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 		if(MainButton.Debounce())								//check for debounce
 		{
-			if(MainButton.CheckState())							//check if button On/Off
+			if(MainButton.CheckPinState() && MainButton.CheckButtonState()==idle)
 			{
+				MainButton.ClickHandled=false;
+				MainButton.UpdateButtonState(first_pressed);
 				//HAL_TIM_Base_Start_IT(MainButton.timer_ptr);	//
 			}
-			else
+			else if(!MainButton.CheckPinState() && MainButton.CheckButtonState()==first_pressed)
 			{
-				if(MainButton.GetClickTime()>= 500)
+				MainButton.UpdateButtonState(first_released);
+				if(MainButton.ClickHandled)
 				{
-					//LongClick
-					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
-					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+					MainButton.Reset();
 				}
-				else
-				{
-					//SingleClick
-					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
-					__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
-				}
-				HAL_TIM_Base_Stop_IT(MainButton.timer_ptr);
-				MainButton.Click_timer = 0;
+
+			}
+			else if(MainButton.CheckPinState() && MainButton.CheckButtonState()==first_released)
+			{
+				MainButton.UpdateButtonState(second_pressed);
+				//DoubleClick
+				MainButton.ClickHandled=true;
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000-200);
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+
+
+			}
+			else if(!MainButton.CheckPinState() && MainButton.CheckButtonState()==second_pressed)
+			{
+				MainButton.UpdateButtonState(second_released);
+
+				MainButton.Reset();
 
 			}
 		}
@@ -201,6 +213,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if(htim == MainButton.timer_ptr)
 	{
 		MainButton.Tick();
+		if(MainButton.CheckButtonState()==first_pressed && MainButton.Click_timer>=LONG_CLICK_TIME)
+		{
+			//LongClick
+			MainButton.ClickHandled=true;
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+
+		}
+		else if(MainButton.CheckButtonState()==first_released && MainButton.Click_timer>=DOUBLE_CLICK_TIME)
+		{
+			//SingleClick
+			MainButton.ClickHandled=true;
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+
+			MainButton.Reset();
+
+
+
+
+		}
+
 		/*
 		if(MainButton.Click_timer>1000)
 		{
