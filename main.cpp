@@ -118,7 +118,7 @@ int main(void)
 	  {
 		  MainButton.SetClickState(first_pressed);
 		  MainButton.Click_timer = 0;
-		  HAL_TIM_Base_Start_IT(MainButton.Click_timer_ptr);
+		  HAL_TIM_Base_Start_IT(MainButton.Timer_ptr);
 	  }
 	  else if(MainButton.GetDebouncedState() == Confirmed_LOW && MainButton.GetClickState() == first_pressed)
 	  {
@@ -126,7 +126,7 @@ int main(void)
 	  }
 	  else if(MainButton.GetClickState() == first_released && MainButton.GetDebouncedState() == Confirmed_HIGH)
 	  {
-		  HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+		  HAL_TIM_Base_Stop_IT(MainButton.Timer_ptr);
 		  MainButton.SetClickState(DOUBLE_CLICK);
 		  //perform DoubleClick
 			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000-200);
@@ -218,15 +218,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			MainButton.SetPinState(HAL_GPIO_ReadPin(FTSW_IN_GPIO_Port, FTSW_IN_Pin));
 			MainButton.Debounce_timer = 0;
 			MainButton.isDebouncing = true;
-			HAL_TIM_Base_Start_IT(MainButton.Debounce_timer_ptr);
+			HAL_TIM_Base_Start_IT(MainButton.Timer_ptr);
 		}
 	}
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim == MainButton.Debounce_timer_ptr)
+	if(htim == MainButton.Timer_ptr)
 	{
 		if(MainButton.isDebouncing)
+		//Debouncing routine
 		{
 			MainButton.Debounce_timer++;
 			if(MainButton.Debounce_timer >= DEBOUNCE_TIME)
@@ -243,15 +244,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 		else
 		{
+		//Clicking routine
 			MainButton.Click_timer++;
 			if(MainButton.GetClickState() == first_pressed && MainButton.Click_timer >= LONG_CLICK_TIME)
 			{
-				HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+				HAL_TIM_Base_Stop_IT(MainButton.Timer_ptr);
 				MainButton.SetClickState(LONG_CLICK);
 			}
 			else if(MainButton.GetClickState() == first_released && MainButton.Click_timer >= DOUBLE_CLICK_TIME)
 			{
-				HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+				HAL_TIM_Base_Stop_IT(MainButton.Timer_ptr);
 				MainButton.SetClickState(SINGLE_CLICK);
 			}
 		}
