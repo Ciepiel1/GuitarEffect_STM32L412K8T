@@ -94,6 +94,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   MX_TIM1_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
   //HAL_TIM_Base_Start_IT(&htim6);
@@ -112,6 +113,48 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	  if(MainButton.GetDebouncedState() == Confirmed_HIGH && MainButton.GetClickState() == idle)
+	  {
+		  MainButton.SetClickState(first_pressed);
+		  MainButton.Click_timer = 0;
+		  HAL_TIM_Base_Start_IT(MainButton.Click_timer_ptr);
+	  }
+	  else if(MainButton.GetDebouncedState() == Confirmed_LOW && MainButton.GetClickState() == first_pressed)
+	  {
+		  MainButton.SetClickState(first_released);
+	  }
+	  else if(MainButton.GetClickState() == first_released && MainButton.GetDebouncedState() == Confirmed_HIGH)
+	  {
+		  HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+		  MainButton.SetClickState(DOUBLE_CLICK);
+		  //perform DoubleClick
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000-200);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+
+		  MainButton.SetClickState(handled);
+	  }
+	  else if(MainButton.GetClickState() == LONG_CLICK)
+	  {
+		  //perform LongClick
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+		  MainButton.SetClickState(handled);
+	  }
+	  else if(MainButton.GetClickState() == SINGLE_CLICK)
+	  {
+		  //perform SingleClick
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
+		  MainButton.SetClickState(handled);
+	  }
+	  else if(MainButton.GetClickState() == handled && MainButton.GetDebouncedState() == Confirmed_LOW)
+	  {
+		  MainButton.SetClickState(idle);
+	  }
 
   }
   /* USER CODE END 3 */
@@ -168,88 +211,56 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == FTSW_IN_Pin && !MainButton.isDebouncing)
+	if(GPIO_Pin == FTSW_IN_Pin)
 	{
-		if(MainButton.Debounce())								//check for debounce
+		if(!MainButton.isDebouncing)
 		{
-			if(MainButton.CheckPinState() && MainButton.CheckButtonState()==idle)
-			{
-				MainButton.ClickHandled=false;
-				MainButton.UpdateButtonState(first_pressed);
-				//HAL_TIM_Base_Start_IT(MainButton.timer_ptr);	//
-			}
-			else if(!MainButton.CheckPinState() && MainButton.CheckButtonState()==first_pressed)
-			{
-				MainButton.UpdateButtonState(first_released);
-				if(MainButton.ClickHandled)
-				{
-					MainButton.Reset();
-				}
-
-			}
-			else if(MainButton.CheckPinState() && MainButton.CheckButtonState()==first_released)
-			{
-				MainButton.UpdateButtonState(second_pressed);
-				//DoubleClick
-				MainButton.ClickHandled=true;
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000-200);
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
-
-
-			}
-			else if(!MainButton.CheckPinState() && MainButton.CheckButtonState()==second_pressed)
-			{
-				MainButton.UpdateButtonState(second_released);
-
-				MainButton.Reset();
-
-			}
+			MainButton.SetPinState(HAL_GPIO_ReadPin(FTSW_IN_GPIO_Port, FTSW_IN_Pin));
+			MainButton.Debounce_timer = 0;
+			MainButton.isDebouncing = true;
+			HAL_TIM_Base_Start_IT(MainButton.Debounce_timer_ptr);
 		}
 	}
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim == MainButton.timer_ptr)
+	if(htim == MainButton.Debounce_timer_ptr)
 	{
-		MainButton.Tick();
-		if(MainButton.CheckButtonState()==first_pressed && MainButton.Click_timer>=LONG_CLICK_TIME)
+		if(MainButton.isDebouncing)
 		{
-			//LongClick
-			MainButton.ClickHandled=true;
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
+			MainButton.Debounce_timer++;
+			if(MainButton.Debounce_timer >= DEBOUNCE_TIME)
+			{
+				if(MainButton.GetPinState() == HAL_GPIO_ReadPin(FTSW_IN_GPIO_Port, FTSW_IN_Pin))
+				{
+					MainButton.SetDebouncedState(MainButton.GetPinState() ? Confirmed_HIGH : Confirmed_LOW);
+				}
 
+				HAL_TIM_Base_Stop_IT(MainButton.Debounce_timer_ptr);
+				MainButton.isDebouncing = false;
+
+			}
 		}
-		else if(MainButton.CheckButtonState()==first_released && MainButton.Click_timer>=DOUBLE_CLICK_TIME)
-		{
-			//SingleClick
-			MainButton.ClickHandled=true;
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
-
-			MainButton.Reset();
-
-
-
-
-		}
-
-		/*
-		if(MainButton.Click_timer>1000)
-		{
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000-200); //green
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); //red
-		}
-		else if(MainButton.Click_timer == 2000) MainButton.Click_timer = 0;
 		else
 		{
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000-200); //red
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000); //green
+			HAL_TIM_Base_Stop_IT(MainButton.Debounce_timer_ptr);
 		}
-		*/
+	}
+
+
+	if(htim == MainButton.Click_timer_ptr)
+	{
+		MainButton.Click_timer++;
+		if(MainButton.GetClickState() == first_pressed && MainButton.Click_timer >= LONG_CLICK_TIME)
+		{
+			HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+			MainButton.SetClickState(LONG_CLICK);
+		}
+		else if(MainButton.GetClickState() == first_released && MainButton.Click_timer >= DOUBLE_CLICK_TIME)
+		{
+			HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+			MainButton.SetClickState(SINGLE_CLICK);
+		}
 	}
 }
 

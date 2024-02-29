@@ -7,6 +7,38 @@
 
 #include "Button.h"
 
+
+	GPIO_PinState Button::GetPinState()
+	{
+		return this->PinState;
+	}
+
+	void Button::SetPinState(GPIO_PinState P_State)
+	{
+		this->PinState = P_State;
+	}
+
+	ButtonState Button::GetDebouncedState()
+	{
+		return this->DebouncedState;
+	}
+	void Button::SetDebouncedState(ButtonState B_State)
+	{
+		this->DebouncedState = B_State;
+	}
+
+	ButtonClickState Button::GetClickState()
+	{
+		return this->ClickState;
+	}
+	void Button::SetClickState(ButtonClickState C_State)
+	{
+		this->ClickState = C_State;
+	}
+
+
+
+/*
 uint8_t Button::Debounce()
 {
 
@@ -74,3 +106,4 @@ void Button::Reset()   //function stopping and reseting timers after click is re
 	UpdateButtonState(idle);
 	Debounce_timer = 30;   //workaround to stop Debouncing while loop - i can do better
 }
+*/
