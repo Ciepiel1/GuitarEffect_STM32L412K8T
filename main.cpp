@@ -236,18 +236,28 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					MainButton.SetDebouncedState(MainButton.GetPinState() ? Confirmed_HIGH : Confirmed_LOW);
 				}
 
-				HAL_TIM_Base_Stop_IT(MainButton.Debounce_timer_ptr);
+				//HAL_TIM_Base_Stop_IT(MainButton.Debounce_timer_ptr);
 				MainButton.isDebouncing = false;
 
 			}
 		}
 		else
 		{
-			HAL_TIM_Base_Stop_IT(MainButton.Debounce_timer_ptr);
+			MainButton.Click_timer++;
+			if(MainButton.GetClickState() == first_pressed && MainButton.Click_timer >= LONG_CLICK_TIME)
+			{
+				HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+				MainButton.SetClickState(LONG_CLICK);
+			}
+			else if(MainButton.GetClickState() == first_released && MainButton.Click_timer >= DOUBLE_CLICK_TIME)
+			{
+				HAL_TIM_Base_Stop_IT(MainButton.Click_timer_ptr);
+				MainButton.SetClickState(SINGLE_CLICK);
+			}
 		}
 	}
 
-
+/*
 	if(htim == MainButton.Click_timer_ptr)
 	{
 		MainButton.Click_timer++;
@@ -262,6 +272,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			MainButton.SetClickState(SINGLE_CLICK);
 		}
 	}
+	*/
 }
 
 
