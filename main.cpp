@@ -47,7 +47,7 @@
 
 /* USER CODE BEGIN PV */
 
-Button MainButton;
+Button MainButton(FTSW_IN_GPIO_Port, FTSW_IN_Pin);  //Button constructor with Port and Pin for type Pin member
 
 /* USER CODE END PV */
 
@@ -169,7 +169,7 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == FTSW_IN_Pin)
+	if(GPIO_Pin == MainButton.GetPinNum())
 	{
 		if(!MainButton.isDebouncing)
 		{

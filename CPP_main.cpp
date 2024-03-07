@@ -13,7 +13,7 @@
 #include "Button.h"
 #include "CPP_main.h"
 
-Button button;
+Button button(FTSW_IN_GPIO_Port, FTSW_IN_Pin);
 
 int CPP_main()
 {

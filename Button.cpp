@@ -6,6 +6,17 @@
  */
 
 #include "Button.h"
+#include "Pin.h"
+
+	Button::Button(GPIO_TypeDef* GPIO_Port, uint16_t Num) : ButtonPin(GPIO_Port, Num)
+	{
+
+	}
+
+	uint16_t Button::GetPinNum() const
+	{
+		return ButtonPin.GetNum();
+	}
 
 
 	GPIO_PinState Button::GetPinState()
@@ -89,7 +100,7 @@
 		this->Debounce_timer++;
 		if(this->Debounce_timer >= DEBOUNCE_TIME)
 		{
-			if(this->GetPinState() == HAL_GPIO_ReadPin(FTSW_IN_GPIO_Port, FTSW_IN_Pin))
+			if(this->GetPinState() == ButtonPin.Read())
 			{
 				this->SetDebouncedState(this->GetPinState() ? Confirmed_HIGH : Confirmed_LOW);
 			}
