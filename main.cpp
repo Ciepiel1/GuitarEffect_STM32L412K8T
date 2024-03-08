@@ -171,13 +171,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == MainButton.GetPinNum())
 	{
-		if(!MainButton.isDebouncing)
-		{
-			MainButton.SetPinState(HAL_GPIO_ReadPin(FTSW_IN_GPIO_Port, FTSW_IN_Pin));
-			MainButton.Debounce_timer = 0;
-			MainButton.isDebouncing = true;
-			HAL_TIM_Base_Start_IT(MainButton.Timer_ptr);
-		}
+		MainButton.StartDebouncing();
 	}
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)

@@ -127,3 +127,15 @@
 	}
 
 
+	void Button::StartDebouncing()
+	{
+		if(!this->isDebouncing)
+		{
+			this->SetPinState(this->ButtonPin.Read());
+			//MainButton.SetPinState(HAL_GPIO_ReadPin(FTSW_IN_GPIO_Port, FTSW_IN_Pin));
+			this->Debounce_timer = 0;
+			this->isDebouncing = true;
+			HAL_TIM_Base_Start_IT(this->Timer_ptr);
+		}
+	}
+
