@@ -26,7 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Button.h"
-#include "CPP_main.h"
+#include "Menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +48,7 @@
 /* USER CODE BEGIN PV */
 
 Button MainButton(FTSW_IN_GPIO_Port, FTSW_IN_Pin);  //Button constructor with Port and Pin for type Pin member
-
+Menu Menu;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
