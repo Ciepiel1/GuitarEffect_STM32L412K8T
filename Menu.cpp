@@ -17,6 +17,7 @@ Menu::Menu()
 void Menu::setState(State& newState)
 {
 	CurrentState = &newState;
+	CurrentState->SetLED();
 }
 
 

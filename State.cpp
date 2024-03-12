@@ -29,6 +29,12 @@ void IdleOn::PrintState()
 //	std::cout << "You're in the IdleOn state" << std::endl;
 }
 
+void IdleOn::SetLED()
+{
+	//LED::SetColor(RED);
+}
+
+
 
 
 void IdleOff::SingleClick(Menu* Menu)
@@ -50,6 +56,11 @@ State& IdleOff::getInstance()
 void IdleOff::PrintState()
 {
 	//std::cout << "You're in the IdleOff state" << std::endl;
+}
+
+void IdleOff::SetLED()
+{
+	//LED::SetColor(RED);
 }
 
 
@@ -100,6 +111,12 @@ void PresetMode::setPresetsPtr(PresetsHandle* ptr)
 	presets_ptr = ptr;
 }
 
+void PresetMode::SetLED()
+{
+	//LED::SetColor(RED);
+}
+
+
 
 
 EditPreset::EditPreset()
@@ -145,4 +162,9 @@ void EditPreset::PrintState()
 void EditPreset::setPresetsPtr(PresetsHandle* ptr)
 {
 	presets_ptr = ptr;
+}
+
+void EditPreset::SetLED()
+{
+	//LED::SetColor(RED);
 }
